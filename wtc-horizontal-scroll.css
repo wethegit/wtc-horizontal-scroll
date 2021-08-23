@@ -1,0 +1,103 @@
+.horizontal-scroll {
+  --item-gap: 24px;
+  --item-width: 300px;
+  --list-pad: 16px;
+  --scrollbar-height: 6px;
+  --scrollbar-thumb-color: magenta;
+  --scrollbar-track-color: #cccccc;
+
+  margin: 0 auto;
+  overflow: hidden;
+  position: relative;
+}
+
+.horizontal-scroll--center-items .horizontal-scroll__list {
+  justify-content: center;
+  width: auto;
+}
+
+.horizontal-scroll--center-items .horizontal-scroll__list::after {
+  display: none;
+}
+
+.horizontal-scroll__nav-item {
+  left: 0;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.horizontal-scroll__nav-item--right {
+  left: auto;
+  right: 0;
+}
+
+.horizontal-scroll__list {
+  display: inline-flex;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+
+  /* prevent vertical scrollbar when loading in: */
+  overflow-y: hidden;
+
+  padding: 0 var(--list-pad) 24px;
+
+  /* the following two properties are for browsers that support the official spec (Firefox).
+  Note that on macOS you need to have scrollbars set to "shown" for this to be visible.
+  https://developer.mozilla.org/en-US/docs/Web/CSS/scrollbar-color#browser_compatibility */
+  scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-track-color);
+  scrollbar-width: thin;
+  width: calc(100% - var(--list-pad) * 2);
+}
+
+.horizontal-scroll__list::-webkit-scrollbar {
+  height: var(--scrollbar-height);
+}
+
+.horizontal-scroll__list::-webkit-scrollbar-track {
+  /* Transparent side borders combined with the background-clip
+  get us that nice "inset" look, i.e. left/right padding.
+  This comes at the cost of being unable to style scrollbars
+  with border-radius, but the aesthetic tradeoff of left/right
+  padding is worth it. This only applies to webkit browsers,
+  as they're the only ones that use the non-standard spec. */
+  background-clip: padding-box;
+  background-color: var(--scrollbar-track-color);
+  border: var(--list-pad) solid transparent;
+}
+
+.horizontal-scroll__list::-webkit-scrollbar-thumb {
+  /* See comment above, referring to the left/right padding trick. */
+  background-clip: padding-box;
+  background-color: var(--scrollbar-thumb-color);
+  border: var(--list-pad) solid transparent;
+}
+
+.horizontal-scroll__list::after {
+  /* A little trick to get right padding on an overflow container.
+  Technically this creates extra space on Chrome, but again, the
+  tradeoff is worth it due to an otherwise complete lack of space on Safari. */
+  border-right: var(--list-pad) solid transparent;
+  content: "";
+  position: relative;
+}
+
+.horizontal-scroll__item {
+  flex: 0 0 var(--item-width);
+  list-style-type: none;
+}
+
+.horizontal-scroll__item + .horizontal-scroll__item {
+  margin-left: var(--item-gap);
+}
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  .horizontal-scroll--snap .horizontal-scroll__list {
+    scroll-padding: var(--item-gap);
+    scroll-snap-type: x mandatory;
+  }
+
+  .horizontal-scroll--snap .horizontal-scroll__item {
+    scroll-snap-align: start;
+  }
+}

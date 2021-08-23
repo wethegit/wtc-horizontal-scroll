@@ -1,0 +1,18 @@
+{
+  "name": "wtc-horizontal-scroll",
+  "version": "1.0.0",
+  "description": "A zero-dependency, customizable horizontal scroll component; featuring scroll-snapping, custom scrollbars, and out-of-the-box accessible UI.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "horizontal",
+    "scroll",
+    "swipe",
+    "snap",
+    "scrollbars"
+  ],
+  "author": "Andrew Rubin <arubin78@gmail.com>",
+  "license": "MIT"
+}
