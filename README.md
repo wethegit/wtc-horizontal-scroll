@@ -5,7 +5,7 @@ Features:
 
 - Custom scrollbars
 - Optional scroll-snapping
-- Out-of-the-box accessible UI (TODO)
+- Out-of-the-box accessible UI
 - Automatically centers content when a scrollbar is not needed
 
 ## Usage
@@ -174,6 +174,8 @@ Default: `#cccccc`
 
 ---
 
-## Demos
+## Examples
 
-TODO: make a list of three or four custom examples on CodePen
+🛠 TODO: make a list of three or four custom examples on CodePen
+
+For testing purposes, you can check this out for now: https://codepen.io/andyranged/pen/3fa2c8b9e92f87ecb9703bbb9693ed53
