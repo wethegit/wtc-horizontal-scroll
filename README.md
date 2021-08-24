@@ -76,8 +76,9 @@ OR
 
 ### `baseClassName`
 
-This allows you to customize the "block" className (see the [BEM naming methodology](http://getbem.com/introduction/)). Please note that you will have to update all stylesheet selectors as well, if you change this. It's recommended to leave it as is.  
-Default: `horizontal-scroll`
+Type: String  
+Default: `"horizontal-scroll"`  
+This allows you to customize the "block" className (see the [BEM naming methodology](http://getbem.com/introduction/)). Please note that you will have to update all stylesheet selectors as well, if you change this. It's recommended to leave it as is.
 
 ### `easingFunction`
 
@@ -97,7 +98,7 @@ Sets the easing curve for the scroll animation when navigation buttons are used.
 
 Type: Boolean  
 Default: `true`  
-Whether or not to use left/right buttons to advance the scrollbar position. For accessibility reasons, if your child items are not focusable (maybe they're just text and images), it's recommended to keep the default setting of `true` here. Otherwise, you're exluding users who do not use a mouse, trackpad, touch screen, or similar interface.
+Whether or not to use left/right buttons to advance the scrollbar position. For accessibility reasons, if your child items are not focusable (maybe they're just text and images), it's recommended to keep the default setting of `true` here. Otherwise, you risk exluding users who do not use a mouse, trackpad, touch screen, or similar interface.
 
 ### `navigationLabel`
 
@@ -129,12 +130,18 @@ type: String
 Default: `"<span aria-hidden="true"> > </span>"`  
 A string of HTML content for the "next" navigation button. The default value contains the `aria-hidden="true"` attribute, meaning it will not be announced by assistive technology. Use in conjunction with `navigationHiddenText<Next|Prev>`.
 
+### `scrollIncrement`
+
+Type: Number  
+Default: `1`  
+The amount of child items to advance when clicking the next/previous navigation buttons.
+
 ### `scrollSnap`
 
 Type: Boolean  
 Default: `false`  
 Whether or not to use CSS scroll-snapping to auto-align each item when the user stops scrolling.  
-⚠️ Currently this can only be used with `navigation` set to `false`, as the tweening of the scroll position interferes with the CSS scroll-snap.
+⚠️ This can only be used with `navigation` set to `false`, as the tweening of the scroll position on nav-click will interfere with the CSS scroll-snap.
 
 ---
 
@@ -149,7 +156,7 @@ Default: `24px`
 
 ### `--item-width`
 
-The width of the child items. Currently this component only supports a uniform width for all child items, due to a desire to keep this thing svelte (items of varying widths would require a bit of unnecessary overhead when calculating the scroll increment value for the nav arrow advancing). Support for varied widths may be added in a future update, depending on the demand for it.
+The width of the child items. Currently this component only supports a uniform width for all child items, due to a desire to keep this thing svelte (items of varying widths would require a bit of unnecessary overhead when calculating the scroll increment value for the nav arrow advancing). Support for varied widths may be added in a future update, depending on the demand for it.  
 Default: `300px`
 
 ### `--list-pad`
