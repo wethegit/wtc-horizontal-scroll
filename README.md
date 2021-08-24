@@ -60,7 +60,7 @@ new HorizontalScroll(scrollElement);
 
 ## Options
 
-The following options can ether be be passed into an object as a second argument to the constructor, or as data-attributes on the HTML itself. For example:
+Most of the following options can ether be be passed into an object as a second argument to the constructor, or as data-attributes on the HTML itself. For example:
 
 ```js
 new HorizontalScroll(element, { scrollSnap: true }
@@ -74,32 +74,67 @@ OR
 </div>
 ```
 
+### `baseClassName`
+
+This allows you to customize the "block" className (see the [BEM naming methodology](http://getbem.com/introduction/)). Please note that you will have to update all stylesheet selectors as well, if you change this. It's recommended to leave it as is.  
+Default: `horizontal-scroll`
+
+### `easingFunction`
+
+Type: Function  
+Default:
+
+```js
+(x) => {
+  if (x < 0.5) 2 * x * x;
+  else 1 - Math.pow(-2 * x + 2, 2) / 2;
+};
+```
+
+Sets the easing curve for the scroll animation when navigation buttons are used. Defaults to a quadratic ease-in-out. This option can only be modified via the constructor function (not a data attribute).
+
 ### `navigation`
 
-Whether or not to use left/right buttons to advance the scrollbar position. For accessibility reasons, if your child items are not focusable (maybe they're just text and images), it's recommended to keep the default setting of `true` here. Otherwise, you're exluding users who do not use a mouse, trackpad, touch screen, or similar interface.  
-Default: `true`
+Type: Boolean  
+Default: `true`  
+Whether or not to use left/right buttons to advance the scrollbar position. For accessibility reasons, if your child items are not focusable (maybe they're just text and images), it's recommended to keep the default setting of `true` here. Otherwise, you're exluding users who do not use a mouse, trackpad, touch screen, or similar interface.
 
 ### `navigationLabel`
 
-The `aria-label` attribute for the the `<nav>` landmark. Only applies if `navigation` is set to `true`. If you're using this component more than once on a page, make sure you give a unique label to each instance. Otherwise your page will not be WCAG compliant See [_Using ARIA landmarks to identify regions of a page_](https://www.w3.org/TR/WCAG20-TECHS/ARIA11.html).  
-Default: `"Horizontal scroll"`
+Type: String  
+Default: `"Horizontal scroll"`  
+The `aria-label` attribute for the the `<nav>` landmark. If you're using this component more than once on a page, make sure you give a unique label to each instance. Otherwise your page will not be WCAG compliant See [_Using ARIA landmarks to identify regions of a page_](https://www.w3.org/TR/WCAG20-TECHS/ARIA11.html).
 
-### `navigationTextLeft`
+### `navigationHiddenTextPrev`
 
-Hidden text to apply to the left/right navigation buttons, for use with assistive technology such as a screen-reader. Only applies if `navigation` is set to `true`.  
-Default: `"Scroll backwards"`
+Type: String  
+Default: `"Scroll backwards"`  
+Hidden text to apply to the "previous" navigation button, for use with assistive technology such as a screen-reader.
 
-### `navigationTextRight`
+### `navigationHiddenTextNext`
 
-Hidden text to apply to the left/right navigation buttons, for use with assistive technology such as a screen-reader. Only applies if `navigation` is set to `true`.  
-Default: `"Scroll forwards"`
+Type: String  
+Default: `"Scroll forwards"`  
+Hidden text to apply to the "next" navigation button, for use with assistive technology such as a screen-reader.
+
+### `navigationVisualContentPrev`
+
+type: String  
+Default: `"<span aria-hidden="true"> < </span>"`  
+A string of HTML content for the "previous" navigation button. The default value contains the `aria-hidden="true"` attribute, meaning it will not be announced by assistive technology.
+
+### `navigationVisualContentNext`
+
+type: String  
+Default: `"<span aria-hidden="true"> > </span>"`  
+A string of HTML content for the "next" navigation button. The default value contains the `aria-hidden="true"` attribute, meaning it will not be announced by assistive technology. Use in conjunction with `navigationHiddenText<Next|Prev>`.
 
 ### `scrollSnap`
 
+Type: Boolean  
+Default: `false`  
 Whether or not to use CSS scroll-snapping to auto-align each item when the user stops scrolling.  
-Default: `false`
-
-That's all for now, but please feel free to open a pull request or an issue on this repo and suggest more options.
+⚠️ Currently this can only be used with `navigation` set to `false`, as the tweening of the scroll position interferes with the CSS scroll-snap.
 
 ---
 
@@ -114,7 +149,7 @@ Default: `24px`
 
 ### `--item-width`
 
-The width of the child items. If you have varying widths, set this property to `auto`.  
+The width of the child items. Currently this component only supports a uniform width for all child items, due to a desire to keep this thing svelte (items of varying widths would require a bit of unnecessary overhead when calculating the scroll increment value for the nav arrow advancing). Support for varied widths may be added in a future update, depending on the demand for it.
 Default: `300px`
 
 ### `--list-pad`

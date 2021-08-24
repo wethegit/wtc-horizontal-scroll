@@ -11,6 +11,16 @@
   position: relative;
 }
 
+.horizontal-scroll__visually-hidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
 .horizontal-scroll--center-items .horizontal-scroll__list {
   justify-content: center;
   width: auto;
@@ -27,7 +37,7 @@
   transform: translateY(-50%);
 }
 
-.horizontal-scroll__nav-item--right {
+.horizontal-scroll__nav-item--next {
   left: auto;
   right: 0;
 }

@@ -1,3 +1,5 @@
+import tween from "wtc-tween";
+
 /**
  * Class to instantiate a Horizontal Scroll component. Includes resize logic
  * to determine layout behavior (centering or scrolling) based on the width of
@@ -23,19 +25,35 @@ class HorizontalScroll {
       baseClassName,
       navigation,
       navigationLabel,
-      navigationTextLeft,
-      navigationTextRight,
+      navigationHiddenTextPrev,
+      navigationHiddenTextNext,
+      scrollIncrement,
       scrollSnap,
     } = this.element.dataset;
 
-    // Set options based on the data-attributes.
+    // Set options based on the data-attributes (where applicable).
     // Anything passed to the constructor will take priority.
     this.options = {
       baseClassName: baseClassName || "horizontal-scroll",
+      easingFunction: (x) =>
+        x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2,
       navigation: navigation && navigation === "false" ? false : true,
       navigationLabel: navigationLabel || "Horizontal scroll",
-      navigationTextLeft: navigationTextLeft || "Scroll backwards",
-      navigationTextRight: navigationTextRight || "Scroll forwards",
+      navigationHiddenTextNext: navigationHiddenTextNext || "Scroll forwards",
+      navigationHiddenTextPrev: navigationHiddenTextPrev || "Scroll backwards",
+      navigationVisualContentNext: this.element.querySelector(
+        ".horizontal-scroll__nav-markup-next"
+      )
+        ? this.element.querySelector(".horizontal-scroll__nav-markup-next")
+            .innerHTML
+        : "<span aria-hidden-'true'>></span>",
+      navigationVisualContentPrev: this.element.querySelector(
+        ".horizontal-scroll__nav-markup-previous"
+      )
+        ? this.element.querySelector(".horizontal-scroll__nav-markup-previous")
+            .innerHTML
+        : "<span aria-hidden-'true'><</span>",
+      scrollIncrement: (scrollIncrement && parseInt(scrollIncrement)) || 1,
       scrollSnap: scrollSnap === "true" || false,
       ...options,
     };
@@ -53,6 +71,7 @@ class HorizontalScroll {
     );
     this.handleResize = this.handleResize.bind(this);
     this.itemReducer = this.itemReducer.bind(this);
+    this.handleNavClick = this.handleNavClick.bind(this);
     this.resizeTimer = null;
 
     // Initialization:
@@ -65,40 +84,67 @@ class HorizontalScroll {
 
     if (this.options.navigation) {
       const nav = document.createElement("nav");
-      const navLeft = document.createElement("button");
-      const navRight = document.createElement("button");
+      const navPrev = document.createElement("button");
+      const navNext = document.createElement("button");
+      const navPrevHiddenText = document.createElement("span");
+      const navNextHiddenText = document.createElement("span");
       // creating two div wrappers so that users can animate the buttons
       // themselves if they want to, and positioning won't get in the way:
-      const navWrapperLeft = document.createElement("div");
-      const navWrapperRight = document.createElement("div");
+      const navWrapperPrev = document.createElement("div");
+      const navWrapperNext = document.createElement("div");
 
+      // Component navigation label:
       this.options.navigationLabel &&
         nav.setAttribute("aria-label", this.options.navigationLabel);
-      nav.classList.add(`${this.options.baseClassName}__nav`);
-      navWrapperLeft.classList.add(
-        `${this.options.baseClassName}__nav-item`,
-        `${this.options.baseClassName}__nav-item--left`
-      );
-      navWrapperRight.classList.add(
-        `${this.options.baseClassName}__nav-item`,
-        `${this.options.baseClassName}__nav-item--right`
-      );
-      navLeft.classList.add(
-        `${this.baseClassName}__nav-button`,
-        `${this.baseClassName}__nav-button--left`
-      );
-      navRight.classList.add(
-        `${this.baseClassName}__nav-button`,
-        `${this.baseClassName}__nav-button--right`
-      );
-      navLeft.textContent = this.options.navigationTextLeft;
-      navRight.textContent = this.options.navigationTextRight;
 
-      navWrapperLeft.appendChild(navLeft);
-      navWrapperRight.appendChild(navRight);
-      nav.appendChild(navWrapperLeft);
-      nav.appendChild(navWrapperRight);
+      // Add classNames:
+      nav.classList.add(`${this.options.baseClassName}__nav`);
+      navWrapperPrev.classList.add(
+        `${this.options.baseClassName}__nav-item`,
+        `${this.options.baseClassName}__nav-item--prev`
+      );
+      navWrapperNext.classList.add(
+        `${this.options.baseClassName}__nav-item`,
+        `${this.options.baseClassName}__nav-item--next`
+      );
+      navPrev.classList.add(
+        `${this.options.baseClassName}__nav-button`,
+        `${this.options.baseClassName}__nav-button--prev`
+      );
+      navNext.classList.add(
+        `${this.options.baseClassName}__nav-button`,
+        `${this.options.baseClassName}__nav-button--next`
+      );
+      navPrevHiddenText.classList.add(
+        `${this.options.baseClassName}__visually-hidden`
+      );
+      navNextHiddenText.classList.add(
+        `${this.options.baseClassName}__visually-hidden`
+      );
+
+      // Add attributes:
+      navPrev.dataset.dir = "0";
+      navNext.dataset.dir = "1";
+
+      // Structure the content:
+      navPrevHiddenText.textContent = this.options.navigationHiddenTextPrev;
+      navNextHiddenText.textContent = this.options.navigationHiddenTextNext;
+      // add the visual button content:
+      navPrev.innerHTML = this.options.navigationVisualContentPrev;
+      navNext.innerHTML = this.options.navigationVisualContentNext;
+      // add the hidden text content:
+      navNext.appendChild(navNextHiddenText);
+      navPrev.appendChild(navPrevHiddenText);
+      // assemble it all and append to the DOM:
+      navWrapperPrev.appendChild(navPrev);
+      navWrapperNext.appendChild(navNext);
+      nav.appendChild(navWrapperPrev);
+      nav.appendChild(navWrapperNext);
       this.element.insertAdjacentElement("afterbegin", nav);
+
+      // Hook up click events:
+      navPrev.addEventListener("click", this.handleNavClick);
+      navNext.addEventListener("click", this.handleNavClick);
     }
   }
 
@@ -131,6 +177,103 @@ class HorizontalScroll {
     this.element.classList[itemsWidth > listWidth ? "remove" : "add"](
       `${this.options.baseClassName}--center-items`
     );
+  }
+
+  /**
+   * Calculates a new scroll position based on the current scroll position and
+   * the "scrollIncrement" option.
+   *
+   * @param {Number | Boolean} direction - true/false (or 1/0) maps to next/previous,
+   * and determines the direction of the scroll.
+   * @returns {Number} The new scroll position
+   */
+  calculateNewScrollPosition(direction = 1) {
+    const itemWidth = this.items[0].offsetWidth;
+
+    // Get the x value for the leftmost item that is _fully_ visible
+    const leftmostItem = this.items.find(
+      (x) => x.getBoundingClientRect().x >= this.itemGap * 0.5
+    );
+    const leftmostItemX = leftmostItem.getBoundingClientRect().x;
+
+    // The following is a lot of hard-to-read math that basically determines:
+    // Do we honor the "scrollIncrement" value, or will that skip over content?
+    // If it will skip over content, we ensure that the scrollIncrement is
+    // one "item width" less than what was passed in as the option.
+
+    const leftPad =
+      leftmostItem === this.items[0] ? this.listPad : this.itemGap * 0.5;
+
+    // TODO: if you pass null as the increment, update scroll pos based on
+    // number of visible items.
+    const scrollIncrement = this.options.scrollIncrement;
+
+    let incrementMultiplier =
+      leftmostItemX === leftPad ? scrollIncrement : scrollIncrement - 1;
+
+    let newScrollPosition;
+
+    if (direction) {
+      // "next"
+      newScrollPosition =
+        this.list.scrollLeft +
+        leftmostItemX +
+        incrementMultiplier * (itemWidth + this.itemGap) -
+        this.itemGap * 0.5;
+    } else {
+      // "previous"
+      if (
+        this.list.scrollLeft <=
+        itemWidth + this.listPad + this.itemGap * 0.5
+      ) {
+        // Since the listPad and itemGap will be different, this check will save us
+        // some calculation work by just checking whether we should go back to the
+        // very beginning…
+        newScrollPosition = 0;
+      } else {
+        // …In all other cases though, we'll need to use a similar logic to the
+        // next button, but slightly tweaked.
+        newScrollPosition =
+          incrementMultiplier < 1
+            ? this.list.scrollLeft -
+              (itemWidth + this.itemGap - leftmostItemX + leftPad) -
+              incrementMultiplier * (itemWidth + this.itemGap)
+            : this.list.scrollLeft -
+              incrementMultiplier * (itemWidth + this.itemGap);
+      }
+    }
+
+    return newScrollPosition;
+  }
+
+  /**
+   * Tweens the scroll position to the necessary value. This fires on nav click,
+   * but can also be called programatically if needed.
+   *
+   * @param {Number | Boolean} direction - true/false (or 1/0) maps to next/previous,
+   * and determines the direction of the scroll.
+   */
+  updateScrollPosition(direction = 1) {
+    const initialPos = this.list.scrollLeft;
+    const newPos = this.calculateNewScrollPosition(direction);
+    const prefersReducedMotion = matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    const duration = prefersReducedMotion ? 1 : 400;
+
+    tween(initialPos, newPos, (value) => this.list.scroll(value, 0), {
+      duration,
+      timingFunction: this.options.easingFunction,
+    });
+  }
+
+  /**
+   *
+   * @param {Event} e - A click event. Expects to be fired from a nav button.
+   */
+  handleNavClick(e) {
+    const { dir: direction } = e.currentTarget.dataset;
+    this.updateScrollPosition(parseInt(direction));
   }
 
   /**

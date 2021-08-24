@@ -65,15 +65,13 @@
       </ul>
     </div>
 
-    <!-- <script src="../index.js" type="module"></script> -->
     <script type="module">
       import HorizontalScroll from "../index.js";
+
       const scrollerElement = document.querySelector(".horizontal-scroll");
+
       new HorizontalScroll(scrollerElement, {
-        // navigation: false,
-        // scrollSnap: false,
-        // navigationTextLeft: "okay, left.",
-        // navigationTextRight: "okay, right.",
+        scrollIncrement: 1,
       });
     </script>
   </body>
