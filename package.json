@@ -13,7 +13,7 @@
     "snap",
     "scrollbars"
   ],
-  "author": "Andrew Rubin <arubin78@gmail.com>",
+  "author": "Andrew Rubin <andrew@wethecollective.com>",
   "license": "MIT",
   "dependencies": {
     "wtc-tween": "~1.0.9"
