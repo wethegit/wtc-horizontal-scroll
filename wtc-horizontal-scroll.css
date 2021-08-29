@@ -21,6 +21,10 @@
   width: 1px;
 }
 
+.horizontal-scroll--center-items .horizontal-scroll__nav {
+  display: none;
+}
+
 .horizontal-scroll--center-items .horizontal-scroll__list {
   justify-content: center;
   width: auto;
