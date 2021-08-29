@@ -8,6 +8,15 @@ Features:
 - Out-of-the-box accessible UI
 - Automatically centers content when a scrollbar is not needed
 
+## Examples
+- [Scroll-snap option](https://codepen.io/team/wtc/pen/cdff0b15da27f5666b0a4f1c19bf3c97)
+- [Accessible navigation options](https://codepen.io/team/wtc/pen/41b32f84319ceb538ee328a7c7b8bacb)
+  - An image gallery with navigational elements to increase accessibility.
+  - Includes custom hidden text within the next/previous navigation buttons (take a look at the options we're passing to the constructor function in the JavaScript).
+- [Automatic re-layout](https://codepen.io/team/wtc/pen/94c29bf2a1774ed0f571adea8e5efb9c)
+  - Resize the browser to be wider than the content to see this in action.
+
+---
 ## Usage
 
 ### Installation
@@ -178,13 +187,3 @@ Default: `magenta`
 
 The color of the scrollbar track. Accepts any CSS color value.  
 Default: `#cccccc`
-
----
-
-## Examples
-- [Scroll-snap option](https://codepen.io/team/wtc/pen/cdff0b15da27f5666b0a4f1c19bf3c97)
-- [Accessible navigation options](https://codepen.io/team/wtc/pen/41b32f84319ceb538ee328a7c7b8bacb)
-  - An image gallery with navigational elements to increase accessibility.
-  - Includes custom hidden text within the next/previous navigation buttons (take a look at the options we're passing to the constructor function in the JavaScript).
-- [Automatic re-layout](https://codepen.io/team/wtc/pen/94c29bf2a1774ed0f571adea8e5efb9c)
-  - Resize the browser to be wider than the content to see this in action.
