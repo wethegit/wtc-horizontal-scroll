@@ -1,21 +1,23 @@
 import tween from "wtc-tween";
 
 /**
- * Class to instantiate a Horizontal Scroll component. Includes resize logic
- * to determine layout behavior (centering or scrolling) based on the width of
- * the DOM element's parent.
+ * Class to instantiate a Horizontal Scroll component. Includes optional
+ * navigational element, and resize logic to determine layout behavior
+ * (centering or scrolling) based on the width of the DOM element's parent.
  */
 class HorizontalScroll {
   /**
    * Creates the HorizontalScroll instance.
    *
-   * @param {HTMLElement} element - The DOM element to assign to our scroll component.
+   * @param {HTMLElement} element - The DOM element to assign to our scroll
+   * component.
    * @param {Object} [options] - An object of optional settings.
-   * @param {String} [options.baseClassName] - The DOM element's className to look for.
-   * This defaults to "horizontal-scroll", and should rarely be tampered with. This component
-   * uses the BEM naming methodology, so if you do change this setting, please ensure that
-   * your markup follows the same convention, and specifically includes the correct classNames
-   * as outlined within this constructor function.
+   * @param {String} [options.baseClassName] - The DOM element's className to
+   * look for. This defaults to "horizontal-scroll", and should rarely be
+   * tampered with. This component uses the BEM naming methodology, so if you
+   * do change this setting, please ensure that your markup follows the same
+   * convention, and specifically includes the correct classNames as outlined
+   * within this constructor function.
    */
   constructor(element, options = {}) {
     this.element = element;
@@ -183,8 +185,8 @@ class HorizontalScroll {
    * Calculates a new scroll position based on the current scroll position and
    * the "scrollIncrement" option.
    *
-   * @param {Number | Boolean} direction - true/false (or 1/0) maps to next/previous,
-   * and determines the direction of the scroll.
+   * @param {Number | Boolean} direction - true/false (or 1/0) maps to
+   * next/previous, and determines the direction of the scroll.
    * @returns {Number} The new scroll position
    */
   calculateNewScrollPosition(direction = 1) {
@@ -196,7 +198,7 @@ class HorizontalScroll {
     );
     const leftmostItemX = leftmostItem.getBoundingClientRect().x;
 
-    // The following is a lot of hard-to-read math that basically determines:
+    // The following bunch of calculations basically determines:
     // Do we honor the "scrollIncrement" value, or will that skip over content?
     // If it will skip over content, we ensure that the scrollIncrement is
     // one "item width" less than what was passed in as the option.
@@ -226,13 +228,13 @@ class HorizontalScroll {
         this.list.scrollLeft <=
         itemWidth + this.listPad + this.itemGap * 0.5
       ) {
-        // Since the listPad and itemGap will be different, this check will save us
-        // some calculation work by just checking whether we should go back to the
-        // very beginning…
+        // Since the listPad and itemGap will be different, this check will
+        // save us some calculation work by just checking whether we should go
+        // back to the very beginning…
         newScrollPosition = 0;
       } else {
         // …In all other cases though, we'll need to use a similar logic to the
-        // next button, but slightly tweaked.
+        // next button, but slightly tweaked:
         newScrollPosition =
           incrementMultiplier < 1
             ? this.list.scrollLeft -
@@ -250,8 +252,8 @@ class HorizontalScroll {
    * Tweens the scroll position to the necessary value. This fires on nav click,
    * but can also be called programatically if needed.
    *
-   * @param {Number | Boolean} direction - true/false (or 1/0) maps to next/previous,
-   * and determines the direction of the scroll.
+   * @param {Number | Boolean} direction - true/false (or 1/0) maps to
+   * next/previous, and determines the direction of the scroll.
    */
   updateScrollPosition(direction = 1) {
     const initialPos = this.list.scrollLeft;
