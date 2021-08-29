@@ -72,7 +72,7 @@ new HorizontalScroll(scrollElement);
 Most of the following options can ether be be passed into an object as a second argument to the constructor, or as data-attributes on the HTML itself. For example:
 
 ```js
-new HorizontalScroll(element, { scrollSnap: true }
+new HorizontalScroll(element, { scrollSnap: true })
 ```
 
 OR
@@ -187,3 +187,45 @@ Default: `magenta`
 
 The color of the scrollbar track. Accepts any CSS color value.  
 Default: `#cccccc`
+
+---
+
+## Common configurations
+
+### Scroll-snapping
+```js
+new HorizontalScroll(element, {
+  navigation: false,
+  scrollSnap: true,
+})
+// Note: navigation must be disabled for scrollSnap to work.
+// The navigation tween animation interferes with the scroll-snap animation.
+```
+
+### Custom navigation
+```js
+new HorizontalScroll(element, {
+  navigation: true,
+  navigationLabel: "Product list navigation",
+  navigationHiddenTextPrev: "Scroll to previous product",
+  navigationHiddenTextNext: "Scroll to next product",
+  navigationVisualContentPrev: "<img src='arrow-prev.svg.' alt=''>",
+  navigationVisualContentNext: "<img src='arrow-next.svg.' alt=''>",
+})
+// You'll typically use `navigationVisualContent<Prev|Next>` in
+// conjunction with `naviagtionHiddenText<Prev|Next>, and thus you will likely
+// not want assistive technology to announce the "visual content". 
+// In this example, we're passing an empty string to the alt attribute of the
+// image within the HTML string we're supplying. This idea can be applied to
+// non-image HTML content (or SVG strings) as well, by using `aria-hidden="true"`.
+```
+
+### Navigation with a custom scroll increment.
+```js
+new HorizontalScroll(element, {
+  scrollIncrement: 3,
+})
+// This advances the scroller three items at a time.
+// Note that `navigation` is `true`, and has generic accessible English text
+// by default.
+```
