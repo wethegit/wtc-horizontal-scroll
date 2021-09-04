@@ -11,13 +11,31 @@ class HorizontalScroll {
    *
    * @param {HTMLElement} element - The DOM element to assign to our scroll
    * component.
-   * @param {Object} [options] - An object of optional settings.
-   * @param {String} [options.baseClassName] - The DOM element's className to
-   * look for. This defaults to "horizontal-scroll", and should rarely be
-   * tampered with. This component uses the BEM naming methodology, so if you
-   * do change this setting, please ensure that your markup follows the same
-   * convention, and specifically includes the correct classNames as outlined
-   * within this constructor function.
+   * @param {object} [options] - An object of optional settings.
+   * @param {string} [options.baseClassName] - The DOM
+   * element's className to look for. This defaults to "horizontal-scroll". If
+   * you change this setting, please ensure that your markup and you CSS follow
+   * the same naming convention, and specifically includes the correct
+   * classNames as outlined within this class.
+   * @param {boolean} [options.navigation] - Whether or not to use left/right
+   * buttons to advance the scrollbar position.
+   * @param {string} [options.navigationLabel] - The `aria-label` attribute for
+   * the the `<nav>` landmark.
+   * @param {string} [options.navigationHiddenTextPrev] - Hidden text to apply
+   * to the "previous" navigation button.
+   * @param {string} [options.navigationHiddenTextNext] - Hidden text to apply
+   * to the "next" navigation button.
+   * @param {string} [options.navigationVisualContentPrev] - A string of HTML
+   * content for the "previous" navigation button's _visual_ content. Intended
+   * to be hidden from assistive technology.
+   * @param {string} [options.navigationVisualContentNext] - A string of HTML
+   * content for the "next" navigation button's _visual_ content. Intended to be
+   * hidden from assistive technology.
+   * @param {number} [options.scrollIncrement] - The amount of child items to
+   * advance when using the next/previous navigation buttons.
+   * @param {boolean} [options.scrollSnap] - Whether or not to use CSS
+   * scroll-snapping to auto-align each item when the user stops scrolling.
+   * Cannot be used with `navigation: true`, due to conflicting animations.
    */
   constructor(element, options = {}) {
     this.element = element;
@@ -37,12 +55,22 @@ class HorizontalScroll {
     // Anything passed to the constructor will take priority.
     this.options = {
       baseClassName: baseClassName || "horizontal-scroll",
+      // Ease curve defaults to a quadratic in-out:
       easingFunction: (x) =>
         x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2,
+      // Navigation defaults to true, unless "false" data-attr is passed:
       navigation: navigation && navigation === "false" ? false : true,
+      // Nav aria label:
       navigationLabel: navigationLabel || "Horizontal scroll",
+      // Next button hidden text:
       navigationHiddenTextNext: navigationHiddenTextNext || "Scroll forwards",
+      // Next button previous text:
       navigationHiddenTextPrev: navigationHiddenTextPrev || "Scroll backwards",
+      // Next and previous buttons' _visual_ contents default to visually-hidden
+      // greater-than and less-than signs. You can, however, add as much HTML
+      // content as you like to a wrapper with a classname of
+      // ".horizontal-scroll__nav-markup-next"—if this element exists, it will
+      // be used instead. useful for complex button markup:
       navigationVisualContentNext: this.element.querySelector(
         ".horizontal-scroll__nav-markup-next"
       )
@@ -55,7 +83,9 @@ class HorizontalScroll {
         ? this.element.querySelector(".horizontal-scroll__nav-markup-previous")
             .innerHTML
         : "<span aria-hidden-'true'><</span>",
+      // Scroll increment defaults to 1, unless some other data-attr is passed:
       scrollIncrement: (scrollIncrement && parseInt(scrollIncrement)) || 1,
+      // Scroll-snap defaults to false, unless "true" data-attr is passed:
       scrollSnap: scrollSnap === "true" || false,
       ...options,
     };
@@ -64,6 +94,7 @@ class HorizontalScroll {
     this.items = [
       ...element.querySelectorAll(`.${this.options.baseClassName}__item`),
     ];
+    // get information from the CSS custom properties:
     this.computedStyle = window.getComputedStyle(this.element);
     this.itemGap = parseInt(
       this.computedStyle.getPropertyValue("--item-gap").replace("px", "")
@@ -71,31 +102,38 @@ class HorizontalScroll {
     this.listPad = parseInt(
       this.computedStyle.getPropertyValue("--list-pad").replace("px", "")
     );
+
     this.handleResize = this.handleResize.bind(this);
     this.itemReducer = this.itemReducer.bind(this);
     this.handleNavClick = this.handleNavClick.bind(this);
+
+    // debounce timer:
     this.resizeTimer = null;
 
+    // ----------------------
     // Initialization:
-
+    // ----------------------
     window.addEventListener("resize", this.handleResize);
     window.addEventListener("load", () => this.adjustAlignment());
 
+    // add scroll snap modifier class if needed
     this.options.scrollSnap &&
       this.element.classList.add(`${this.options.baseClassName}--snap`);
 
+    // generate the navigation markup!
     if (this.options.navigation) {
       const nav = document.createElement("nav");
       const navPrev = document.createElement("button");
       const navNext = document.createElement("button");
       const navPrevHiddenText = document.createElement("span");
       const navNextHiddenText = document.createElement("span");
-      // creating two div wrappers so that users can animate the buttons
-      // themselves if they want to, and positioning won't get in the way:
+      // The following two div wrappers are created so that users can animate
+      // the buttons themselves if they want to, and any "translate" positioning
+      // won't get in the way of that:
       const navWrapperPrev = document.createElement("div");
       const navWrapperNext = document.createElement("div");
 
-      // Component navigation label:
+      // Component navigation aria-label:
       this.options.navigationLabel &&
         nav.setAttribute("aria-label", this.options.navigationLabel);
 
@@ -124,11 +162,11 @@ class HorizontalScroll {
         `${this.options.baseClassName}__visually-hidden`
       );
 
-      // Add attributes:
+      // Add direction attributes to nav buttons (prev/next ==> 0/1):
       navPrev.dataset.dir = "0";
       navNext.dataset.dir = "1";
 
-      // Structure the content:
+      // Assemble the navigation content:
       navPrevHiddenText.textContent = this.options.navigationHiddenTextPrev;
       navNextHiddenText.textContent = this.options.navigationHiddenTextNext;
       // add the visual button content:
@@ -154,9 +192,9 @@ class HorizontalScroll {
    * Calculates the total pixel-width of the component's children (items),
    * including their margins (gap) and the list's padding.
    *
-   * @param {Number} total - The reducer's accumulator value.
+   * @param {number} total - The reducer's accumulator value.
    * @param {HTMLElement} currentItem - The reducer's current value.
-   * @param {Number} i - The index of the current item.
+   * @param {number} i - The index of the current item.
    * @returns The total width of the component's children.
    */
   itemReducer(total, currentItem, i) {
@@ -185,9 +223,9 @@ class HorizontalScroll {
    * Calculates a new scroll position based on the current scroll position and
    * the "scrollIncrement" option.
    *
-   * @param {Number | Boolean} direction - true/false (or 1/0) maps to
+   * @param {number | boolean} direction - true/false (or 1/0) maps to
    * next/previous, and determines the direction of the scroll.
-   * @returns {Number} The new scroll position
+   * @returns {number} The new scroll position
    */
   calculateNewScrollPosition(direction = 1) {
     const itemWidth = this.items[0].offsetWidth;
@@ -252,7 +290,7 @@ class HorizontalScroll {
    * Tweens the scroll position to the necessary value. This fires on nav click,
    * but can also be called programatically if needed.
    *
-   * @param {Number | Boolean} direction - true/false (or 1/0) maps to
+   * @param {number | boolean} direction - true/false (or 1/0) maps to
    * next/previous, and determines the direction of the scroll.
    */
   updateScrollPosition(direction = 1) {
