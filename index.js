@@ -7,7 +7,8 @@ import tween from "wtc-tween";
  */
 class HorizontalScroll {
   /**
-   * Creates the HorizontalScroll instance.
+   * Creates the HorizontalScroll instance. _Most_ options can be passed in via
+   * data-attributes on the element.
    *
    * @param {HTMLElement} element - The DOM element to assign to our scroll
    * component.
@@ -37,11 +38,55 @@ class HorizontalScroll {
    * scroll-snapping to auto-align each item when the user stops scrolling.
    * Cannot be used with `navigation: true`, due to conflicting animations.
    */
-  constructor(element, options = {}) {
+  constructor(
+    element,
+    {
+      baseClassName = element.dataset.baseClassName || "horizontal-scroll",
+      // Ease curve defaults to a quadratic in-out:
+      easingFunction = (x) =>
+        x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2,
+      // Navigation defaults to true, unless "false" data-attr is passed:
+      navigation = element.dataset.navigation &&
+      element.dataset.navigation === "false"
+        ? false
+        : true,
+      // Nav aria label:
+      navigationLabel = element.dataset.navigationLabel || "Horizontal scroll",
+      // "Previous" button hidden text:
+      navigationHiddenTextPrev = element.dataset.navigationHiddenTextPrev ||
+        "Scroll backwards",
+      // "Next" button previous text:
+      navigationHiddenTextNext = element.dataset.navigationHiddenTextNext ||
+        "Scroll forwards",
+      // Next and previous buttons' _visual_ contents default to visually-hidden
+      // greater-than and less-than signs. You can, however, add as much HTML
+      // content as you like to a wrapper with a classname of
+      // ".horizontal-scroll__nav-markup-next"—if this element exists, it will
+      // be used instead. useful for complex button markup:
+      navigationVisualContentPrev = element.querySelector(
+        ".horizontal-scroll__nav-markup-previous"
+      )
+        ? element.querySelector(".horizontal-scroll__nav-markup-previous")
+            .innerHTML
+        : "<span aria-hidden-'true'><</span>",
+      navigationVisualContentNext = element.querySelector(
+        ".horizontal-scroll__nav-markup-next"
+      )
+        ? element.querySelector(".horizontal-scroll__nav-markup-next").innerHTML
+        : "<span aria-hidden-'true'>></span>",
+      // Scroll increment defaults to 1, unless some other data-attr is passed:
+      scrollIncrement = (element.dataset.scrollIncrement &&
+        parseInt(element.dataset.scrollIncrement)) ||
+        1,
+      // Scroll-snap defaults to false, unless "true" data-attr is passed:
+      scrollSnap = element.dataset.scrollSnap === "true" || false,
+    } = {}
+  ) {
+    // Assign a reference to our instance's DOM element:
     this.element = element;
 
-    // Grab the data-attributes
-    const {
+    // Assign a reference to our instance's options:
+    this.options = {
       baseClassName,
       navigation,
       navigationLabel,
@@ -49,47 +94,12 @@ class HorizontalScroll {
       navigationHiddenTextNext,
       scrollIncrement,
       scrollSnap,
-    } = this.element.dataset;
-
-    // Set options based on the data-attributes (where applicable).
-    // Anything passed to the constructor will take priority.
-    this.options = {
-      baseClassName: baseClassName || "horizontal-scroll",
-      // Ease curve defaults to a quadratic in-out:
-      easingFunction: (x) =>
-        x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2,
-      // Navigation defaults to true, unless "false" data-attr is passed:
-      navigation: navigation && navigation === "false" ? false : true,
-      // Nav aria label:
-      navigationLabel: navigationLabel || "Horizontal scroll",
-      // Next button hidden text:
-      navigationHiddenTextNext: navigationHiddenTextNext || "Scroll forwards",
-      // Next button previous text:
-      navigationHiddenTextPrev: navigationHiddenTextPrev || "Scroll backwards",
-      // Next and previous buttons' _visual_ contents default to visually-hidden
-      // greater-than and less-than signs. You can, however, add as much HTML
-      // content as you like to a wrapper with a classname of
-      // ".horizontal-scroll__nav-markup-next"—if this element exists, it will
-      // be used instead. useful for complex button markup:
-      navigationVisualContentNext: this.element.querySelector(
-        ".horizontal-scroll__nav-markup-next"
-      )
-        ? this.element.querySelector(".horizontal-scroll__nav-markup-next")
-            .innerHTML
-        : "<span aria-hidden-'true'>></span>",
-      navigationVisualContentPrev: this.element.querySelector(
-        ".horizontal-scroll__nav-markup-previous"
-      )
-        ? this.element.querySelector(".horizontal-scroll__nav-markup-previous")
-            .innerHTML
-        : "<span aria-hidden-'true'><</span>",
-      // Scroll increment defaults to 1, unless some other data-attr is passed:
-      scrollIncrement: (scrollIncrement && parseInt(scrollIncrement)) || 1,
-      // Scroll-snap defaults to false, unless "true" data-attr is passed:
-      scrollSnap: scrollSnap === "true" || false,
-      ...options,
+      navigationVisualContentPrev,
+      navigationVisualContentNext,
+      easingFunction,
     };
 
+    // Query for expected DOM elements:
     this.list = element.querySelector(`.${this.options.baseClassName}__list`);
     this.items = [
       ...element.querySelectorAll(`.${this.options.baseClassName}__item`),
@@ -103,6 +113,7 @@ class HorizontalScroll {
       this.computedStyle.getPropertyValue("--list-pad").replace("px", "")
     );
 
+    // Bind methods to the instance where necessary:
     this.handleResize = this.handleResize.bind(this);
     this.itemReducer = this.itemReducer.bind(this);
     this.handleNavClick = this.handleNavClick.bind(this);
@@ -173,8 +184,8 @@ class HorizontalScroll {
       navPrev.innerHTML = this.options.navigationVisualContentPrev;
       navNext.innerHTML = this.options.navigationVisualContentNext;
       // add the hidden text content:
-      navNext.appendChild(navNextHiddenText);
       navPrev.appendChild(navPrevHiddenText);
+      navNext.appendChild(navNextHiddenText);
       // assemble it all and append to the DOM:
       navWrapperPrev.appendChild(navPrev);
       navWrapperNext.appendChild(navNext);
