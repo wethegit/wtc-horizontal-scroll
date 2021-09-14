@@ -6,6 +6,17 @@ import tween from "wtc-tween";
  * (centering or scrolling) based on the width of the DOM element's parent.
  */
 class HorizontalScroll {
+  baseClassName;
+  easingFunction;
+  navigation;
+  navigationHiddenTextNext;
+  navigationHiddenTextPrev;
+  navigationLabel;
+  navigationVisualContentNext;
+  navigationVisualContentPrev;
+  scrollIncrement;
+  scrollSnap;
+
   /**
    * Creates the HorizontalScroll instance. _Most_ options can be passed in via
    * data-attributes on the element.
@@ -46,10 +57,7 @@ class HorizontalScroll {
       easingFunction = (x) =>
         x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2,
       // Navigation defaults to true, unless "false" data-attr is passed:
-      navigation = element.dataset.navigation &&
-      element.dataset.navigation === "false"
-        ? false
-        : true,
+      navigation = element.dataset.navigation !== "false",
       // Nav aria label:
       navigationLabel = element.dataset.navigationLabel || "Horizontal scroll",
       // "Previous" button hidden text:
@@ -85,25 +93,21 @@ class HorizontalScroll {
     // Assign a reference to our instance's DOM element:
     this.element = element;
 
-    // Assign a reference to our instance's options:
-    this.options = {
-      baseClassName,
-      navigation,
-      navigationLabel,
-      navigationHiddenTextPrev,
-      navigationHiddenTextNext,
-      scrollIncrement,
-      scrollSnap,
-      navigationVisualContentPrev,
-      navigationVisualContentNext,
-      easingFunction,
-    };
+    // Assign references to our options:
+    this.baseClassName = baseClassName;
+    this.easingFunction = easingFunction;
+    this.navigation = navigation;
+    this.navigationHiddenTextNext = navigationHiddenTextNext;
+    this.navigationHiddenTextPrev = navigationHiddenTextPrev;
+    this.navigationLabel = navigationLabel;
+    this.navigationVisualContentNext = navigationVisualContentNext;
+    this.navigationVisualContentPrev = navigationVisualContentPrev;
+    this.scrollIncrement = scrollIncrement;
+    this.scrollSnap = scrollSnap;
 
     // Query for expected DOM elements:
-    this.list = element.querySelector(`.${this.options.baseClassName}__list`);
-    this.items = [
-      ...element.querySelectorAll(`.${this.options.baseClassName}__item`),
-    ];
+    this.list = element.querySelector(`.${this.baseClassName}__list`);
+    this.items = [...element.querySelectorAll(`.${this.baseClassName}__item`)];
     // get information from the CSS custom properties:
     this.computedStyle = window.getComputedStyle(this.element);
     this.itemGap = parseInt(
@@ -128,11 +132,11 @@ class HorizontalScroll {
     window.addEventListener("load", () => this.adjustAlignment());
 
     // add scroll snap modifier class if needed
-    this.options.scrollSnap &&
-      this.element.classList.add(`${this.options.baseClassName}--snap`);
+    this.scrollSnap &&
+      this.element.classList.add(`${this.baseClassName}--snap`);
 
     // generate the navigation markup!
-    if (this.options.navigation) {
+    if (this.navigation) {
       const nav = document.createElement("nav");
       const navPrev = document.createElement("button");
       const navNext = document.createElement("button");
@@ -145,44 +149,40 @@ class HorizontalScroll {
       const navWrapperNext = document.createElement("div");
 
       // Component navigation aria-label:
-      this.options.navigationLabel &&
-        nav.setAttribute("aria-label", this.options.navigationLabel);
+      this.navigationLabel &&
+        nav.setAttribute("aria-label", this.navigationLabel);
 
       // Add classNames:
-      nav.classList.add(`${this.options.baseClassName}__nav`);
+      nav.classList.add(`${this.baseClassName}__nav`);
       navWrapperPrev.classList.add(
-        `${this.options.baseClassName}__nav-item`,
-        `${this.options.baseClassName}__nav-item--prev`
+        `${this.baseClassName}__nav-item`,
+        `${this.baseClassName}__nav-item--prev`
       );
       navWrapperNext.classList.add(
-        `${this.options.baseClassName}__nav-item`,
-        `${this.options.baseClassName}__nav-item--next`
+        `${this.baseClassName}__nav-item`,
+        `${this.baseClassName}__nav-item--next`
       );
       navPrev.classList.add(
-        `${this.options.baseClassName}__nav-button`,
-        `${this.options.baseClassName}__nav-button--prev`
+        `${this.baseClassName}__nav-button`,
+        `${this.baseClassName}__nav-button--prev`
       );
       navNext.classList.add(
-        `${this.options.baseClassName}__nav-button`,
-        `${this.options.baseClassName}__nav-button--next`
+        `${this.baseClassName}__nav-button`,
+        `${this.baseClassName}__nav-button--next`
       );
-      navPrevHiddenText.classList.add(
-        `${this.options.baseClassName}__visually-hidden`
-      );
-      navNextHiddenText.classList.add(
-        `${this.options.baseClassName}__visually-hidden`
-      );
+      navPrevHiddenText.classList.add(`${this.baseClassName}__visually-hidden`);
+      navNextHiddenText.classList.add(`${this.baseClassName}__visually-hidden`);
 
       // Add direction attributes to nav buttons (prev/next ==> 0/1):
       navPrev.dataset.dir = "0";
       navNext.dataset.dir = "1";
 
       // Assemble the navigation content:
-      navPrevHiddenText.textContent = this.options.navigationHiddenTextPrev;
-      navNextHiddenText.textContent = this.options.navigationHiddenTextNext;
+      navPrevHiddenText.textContent = this.navigationHiddenTextPrev;
+      navNextHiddenText.textContent = this.navigationHiddenTextNext;
       // add the visual button content:
-      navPrev.innerHTML = this.options.navigationVisualContentPrev;
-      navNext.innerHTML = this.options.navigationVisualContentNext;
+      navPrev.innerHTML = this.navigationVisualContentPrev;
+      navNext.innerHTML = this.navigationVisualContentNext;
       // add the hidden text content:
       navPrev.appendChild(navPrevHiddenText);
       navNext.appendChild(navNextHiddenText);
@@ -226,7 +226,7 @@ class HorizontalScroll {
     const itemsWidth = this.items.reduce(this.itemReducer, 0);
     const listWidth = this.element.offsetWidth;
     this.element.classList[itemsWidth > listWidth ? "remove" : "add"](
-      `${this.options.baseClassName}--center-items`
+      `${this.baseClassName}--center-items`
     );
   }
 
@@ -257,7 +257,7 @@ class HorizontalScroll {
 
     // TODO: if you pass null as the increment, update scroll pos based on
     // number of visible items.
-    const scrollIncrement = this.options.scrollIncrement;
+    const scrollIncrement = this.scrollIncrement;
 
     let incrementMultiplier =
       leftmostItemX === leftPad ? scrollIncrement : scrollIncrement - 1;
@@ -314,7 +314,7 @@ class HorizontalScroll {
 
     tween(initialPos, newPos, (value) => this.list.scroll(value, 0), {
       duration,
-      timingFunction: this.options.easingFunction,
+      timingFunction: this.easingFunction,
     });
   }
 
