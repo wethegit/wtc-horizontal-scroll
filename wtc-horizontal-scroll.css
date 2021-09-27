@@ -21,6 +21,11 @@
   width: 1px;
 }
 
+.horizontal-scroll__nav-markup-next,
+.horizontal-scroll__nav-markup-previous {
+  display: none;
+}
+
 .horizontal-scroll--center-items .horizontal-scroll__nav {
   display: none;
 }
