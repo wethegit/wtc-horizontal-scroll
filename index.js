@@ -6,16 +6,17 @@ import tween from "wtc-tween";
  * (centering or scrolling) based on the width of the DOM element's parent.
  */
 class HorizontalScroll {
-  baseClassName;
-  easingFunction;
-  navigation;
-  navigationHiddenTextNext;
-  navigationHiddenTextPrev;
-  navigationLabel;
-  navigationVisualContentNext;
-  navigationVisualContentPrev;
-  scrollIncrement;
-  scrollSnap;
+  baseClassName = "horizontal-scroll";
+  easingFunction = (x) =>
+    x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+  navigation = true;
+  navigationHiddenTextNext = "Scroll forwards";
+  navigationHiddenTextPrev = "Scroll backwards";
+  navigationLabel = "Horizontal scroll";
+  navigationVisualContentNext = "<span aria-hidden-'true'>></span>";
+  navigationVisualContentPrev = "<span aria-hidden-'true'><</span>";
+  scrollIncrement = 1;
+  scrollSnap = false;
 
   /**
    * Creates the HorizontalScroll instance. _Most_ options can be passed in via
@@ -52,58 +53,57 @@ class HorizontalScroll {
   constructor(
     element,
     {
-      baseClassName = element.dataset.baseClassName || "horizontal-scroll",
-      // Ease curve defaults to a quadratic in-out:
-      easingFunction = (x) =>
-        x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2,
-      // Navigation defaults to true, unless "false" data-attr is passed:
-      navigation = element.dataset.navigation !== "false",
-      // Nav aria label:
-      navigationLabel = element.dataset.navigationLabel || "Horizontal scroll",
+      baseClassName = element.dataset.baseClassName,
+      // Animation timing function:
+      easingFunction,
+      // Whether to use navigation:
+      navigation = element.dataset.navigation,
       // "Previous" button hidden text:
-      navigationHiddenTextPrev = element.dataset.navigationHiddenTextPrev ||
-        "Scroll backwards",
+      navigationHiddenTextPrev = element.dataset.navigationHiddenTextPrev,
       // "Next" button previous text:
-      navigationHiddenTextNext = element.dataset.navigationHiddenTextNext ||
-        "Scroll forwards",
+      navigationHiddenTextNext = element.dataset.navigationHiddenTextNext,
+      // Nav aria label:
+      navigationLabel = element.dataset.navigationLabel,
       // Next and previous buttons' _visual_ contents default to visually-hidden
       // greater-than and less-than signs. You can, however, add as much HTML
       // content as you like to a wrapper with a classname of
       // ".horizontal-scroll__nav-markup-next"—if this element exists, it will
       // be used instead. useful for complex button markup:
-      navigationVisualContentPrev = element.querySelector(
-        ".horizontal-scroll__nav-markup-previous"
-      )
-        ? element.querySelector(".horizontal-scroll__nav-markup-previous")
-            .innerHTML
-        : "<span aria-hidden-'true'><</span>",
       navigationVisualContentNext = element.querySelector(
         ".horizontal-scroll__nav-markup-next"
-      )
-        ? element.querySelector(".horizontal-scroll__nav-markup-next").innerHTML
-        : "<span aria-hidden-'true'>></span>",
+      ) &&
+        element.querySelector(".horizontal-scroll__nav-markup-next").innerHTML,
+      navigationVisualContentPrev = element.querySelector(
+        ".horizontal-scroll__nav-markup-previous"
+      ) &&
+        element.querySelector(".horizontal-scroll__nav-markup-previous")
+          .innerHTML,
       // Scroll increment defaults to 1, unless some other data-attr is passed:
-      scrollIncrement = (element.dataset.scrollIncrement &&
-        parseInt(element.dataset.scrollIncrement)) ||
-        1,
+      scrollIncrement = Number(element.dataset.scrollIncrement),
       // Scroll-snap defaults to false, unless "true" data-attr is passed:
-      scrollSnap = element.dataset.scrollSnap === "true" || false,
+      scrollSnap = element.dataset.scrollSnap,
     } = {}
   ) {
     // Assign a reference to our instance's DOM element:
     this.element = element;
 
-    // Assign references to our options:
-    this.baseClassName = baseClassName;
-    this.easingFunction = easingFunction;
-    this.navigation = navigation;
-    this.navigationHiddenTextNext = navigationHiddenTextNext;
-    this.navigationHiddenTextPrev = navigationHiddenTextPrev;
-    this.navigationLabel = navigationLabel;
-    this.navigationVisualContentNext = navigationVisualContentNext;
-    this.navigationVisualContentPrev = navigationVisualContentPrev;
-    this.scrollIncrement = scrollIncrement;
-    this.scrollSnap = scrollSnap;
+    // Overwrite default options if needed:
+    if (baseClassName) this.baseClassName = baseClassName;
+    if (easingFunction && easingFunction instanceof Function)
+      this.easingFunction = easingFunction;
+    if (navigation === "false" || navigation === false) this.navigation = false;
+    if (navigationHiddenTextNext)
+      this.navigationHiddenTextNext = navigationHiddenTextNext;
+    if (navigationHiddenTextPrev)
+      this.navigationHiddenTextPrev = navigationHiddenTextPrev;
+    if (navigationLabel) this.navigationLabel = navigationLabel;
+    if (navigationVisualContentNext)
+      this.navigationVisualContentNext = navigationVisualContentNext;
+    if (navigationVisualContentPrev)
+      this.navigationVisualContentPrev = navigationVisualContentPrev;
+    if (scrollIncrement && !isNaN(scrollIncrement))
+      this.scrollIncrement = scrollIncrement;
+    if (scrollSnap && scrollSnap !== "false") this.scrollSnap = true;
 
     // Query for expected DOM elements:
     this.list = element.querySelector(`.${this.baseClassName}__list`);
