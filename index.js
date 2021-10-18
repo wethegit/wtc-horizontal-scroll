@@ -3,7 +3,7 @@ import tween from "wtc-tween";
 /**
  * Class to instantiate a Horizontal Scroll component. Includes optional
  * navigational element, and resize logic to determine layout behavior
- * (centering or scrolling) based on the width of the DOM element's parent.
+ * (centering or scrolling) based on the width of the DOM element's parent
  */
 class HorizontalScroll {
   baseClassName = "horizontal-scroll";
